@@ -1,0 +1,61 @@
+---
+
+- hosts: controlplane
+  user: automation
+  gather_facts: no
+  connection: ssh
+  become: yes
+  tasks:
+
+  - name: Kubernetes API Server (used by all)
+    firewalld:
+      permanent: yes
+      port: 6443/tcp
+      state: enabled    
+  - name: etcd server client API (used by kube-apiserver, etcd)
+    firewalld:
+      permanent: yes
+      port: 2379-2380/tcp
+      state: enabled    
+  - name: Kubelet API (used by self, control plane)
+    firewalld:
+      permanent: yes
+      port: 10050/tcp
+      state: enabled
+
+  - name: kube-scheduler
+    firewalld:
+      permanent: yes
+      port: 10251/tcp
+      state: enabled
+  - name: kube-controller-manager
+    firewalld:
+      permanent: yes
+      port: 10252/tcp
+      state: enabled
+  - name: --reload firewalld
+    command: firewall-cmd --reload
+
+
+- hosts: nodes
+  user: automation
+  gather_facts: no
+  connection: ssh
+  become: yes
+  tasks:
+  - name: Kubelet API
+    firewalld:
+      permanent: yes
+      port: 10250/tcp
+      state: enabled
+  - name: NodePort Services
+    firewalld:
+      permanent: yes
+      port: 30000-32767/tcp 
+      state: enabled
+  - name: firewall-cmd --reload
+    command: firewall-cmd --reload
+
+      
+ 
+  
