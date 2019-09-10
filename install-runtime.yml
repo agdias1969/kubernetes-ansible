@@ -65,5 +65,26 @@
 
   - name: load br_netfilter
     command: /usr/sbin/modprobe br_netfilter
-    tags: 
-    - modprobe 
+    tags:
+    - modprobe
+  - name: turnoff swap
+    shell:
+      swapoff -a
+    tags:
+    - swapoff
+
+  - name: Disable swap
+    lineinfile:
+      path: /etc/fstab
+      regexp: '^/dev/mapper/centos-swap.*'
+      line: '# /dev/mapper/centos-swap swap                    swap    defaults        0 0'
+    tags:
+    - fstab
+  - name: setting ip_forwarding
+    sysctl:
+      name: net.ipv4.ip_forward
+      value: 1
+      reload: yes
+    tags:
+    - ipforward
+
