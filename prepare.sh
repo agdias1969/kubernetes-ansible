@@ -1,21 +1,8 @@
-$TTL 604800
-@     IN      SOA bastion.example.com. agdias.gmail.com. (
-                  
-                  2019092810; Serial
-                  10800; Refresh after 3 hours
-                  3600; Expire after 1 hour
-                  604800; Expire after 1 week
-                  86400); Minumum TTL
-;
 
-@      IN      NS    ns.
-7      IN      PTR   bastion.example.com.
-
-
-useradd automation
-su - automation
-ssh-keygen
-visudo
+#useradd automation
+#su - automation
+#ssh-keygen
+#visudo
 
 
 for i in k8snode01 k8smaster01 k8snode02; do ssh root@$i 'ssh-keygen'; done
