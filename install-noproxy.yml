@@ -1,0 +1,80 @@
+---
+- hosts: all
+  user: automation
+  become: yes
+  gather_facts: no
+  tasks:
+  - name: Install Docker
+    yum:
+      name: docker
+      state: installed
+  - name: Enable docker
+    systemd:
+      name: docker
+      enabled: yes
+      state: started
+  
+  - name: setting selinux to permissive
+    selinux:
+      policy: targeted
+      state: disabled
+
+  - name: configure kubernetes repository
+    yum_repository:
+      name: kubernetes
+      description: Kubernetes REPO
+      baseurl: https://packages.cloud.google.com/yum/repos/kubernetes-el7-x86_64
+      enabled: yes
+      gpgcheck: yes
+      repo_gpgcheck: yes
+      gpgkey: https://packages.cloud.google.com/yum/doc/yum-key.gpg https://packages.cloud.google.com/yum/doc/rpm-package-key.gpg 
+
+  - name: install kubelet kubeadm kubectl
+    yum:
+     name: "{{item}}"
+     state: installed
+    with_items:
+      - kubelet
+      - kubeadm
+      - kubectl
+  - name: ensure ip6_forwarding
+    lineinfile:
+      create: yes
+      path: /etc/sysctl.d/k8s.conf
+      line: "net.bridge.bridge-nf-call-ip6tables=1"
+      state: present
+    tags:
+    - ipv6
+  - name: ensure ipv4_forwarding
+    lineinfile:
+      create: yes      
+      path: /etc/sysctl.d/k8s.conf
+      line: "net.bridge.bridge-nf-call-iptables=1"
+      state: present
+    tags:
+    - ipv4
+
+  - name: load br_netfilter
+    command: /usr/sbin/modprobe br_netfilter
+    tags:
+    - modprobe
+  - name: turnoff swap
+    shell:
+      swapoff -a
+    tags:
+    - swapoff
+
+  - name: Disable swap
+    lineinfile:
+      path: /etc/fstab
+      regexp: '^/dev/mapper/centos-swap.*'
+      line: '# /dev/mapper/centos-swap swap                    swap    defaults        0 0'
+    tags:
+    - fstab
+  - name: setting ip_forwarding
+    sysctl:
+      name: net.ipv4.ip_forward
+      value: 1
+      reload: yes
+    tags:
+    - ipforward
